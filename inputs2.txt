@@ -1,0 +1,5 @@
+books 2
+rid 10
+deal 1
+glitter 3
+how 14
