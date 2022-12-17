@@ -9,44 +9,34 @@ enum Side {
   LEFT, RIGHT
 };
 
-class Node {
-  public:
-    // contructors
-    Node(std::string key);
-    Node(std::string key, int val);
-    Node(std::string key, int val, Color color);
-    void initNode();
+struct Node {
+  // contructors
+  Node();
+  Node(std::string key);
+  Node(std::string key, int val);
+  Node(std::string key, int val, Color color);
+  void initNode(); // initialize all pointers
 
-    std::string getkey() { return key; }
-    int getvalue() { return val; }
-    Color getcolor() { return color; }
-    void setColor(Color c) { color = c; }
-    void updateVal(int val) { val = val; }
-
-    std::shared_ptr<Node> leftChild();
-    std::shared_ptr<Node> rightChild();
-    std::shared_ptr<Node> sibling();
-    std::shared_ptr<Node> getParent();
-    
-    bool hasLeftChild();
-    bool hasRightChild();
-    void setParent(std::shared_ptr<Node> parent);
-    bool isLeftChild();
-    bool isRightChild();
-    bool isLeafNode() { return left_child == nullptr && right_child == nullptr; }
-    int height();
-    int blackHeight();
-    void setLeftChild(std::shared_ptr<Node> lc); 
-    void setRightChild(std::shared_ptr<Node> rc);
-    std::shared_ptr<Node> getGrandParent();
-    std::shared_ptr<Node> getUncle();
+  std::shared_ptr<Node> sibling();
   
-  private:
-    std::shared_ptr<Node> parent;
-    std::shared_ptr<Node> left_child, right_child;
-    std::string key;
-    int val;
-    Color color;
+  bool isLeftChild();
+  bool isRightChild();
+  bool isLeafNode() { return leftChild == nullptr && rightChild == nullptr; }
+  int height();
+  int blackHeight();
+
+  std::shared_ptr<Node> getGrandParent();
+  std::shared_ptr<Node> getUncle();
+
+  std::shared_ptr<Node> parent;
+  std::shared_ptr<Node> leftChild, rightChild;
+  std::string key;
+  int val;
+  Color color;
 };
 
-
+struct NoParentException : public exception {
+   const char * what () const throw () {
+      return "accessing parent in node with no parent";
+   }
+};

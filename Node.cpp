@@ -1,79 +1,58 @@
 #include <assert.h>
 #include <memory>
 #include <iostream>
+#include <exception>
 #include <stack>
 #include <queue>
 #include "Node.h"
 
 // constructors
-Node::Node(std::string key) : key(key), val(0), color(NONE) { initNode(); }
+Node::Node() { initNode(); }
+Node::Node(std::string key) : key(key), color(NONE) { initNode(); }
 Node::Node(std::string key, int val) : key(key), val(val), color(NONE) { initNode(); }
 Node::Node(std::string key, int val, Color color) : key(key), val(val), color(color) { initNode(); }
 
 void Node::initNode() {
+  // initialize pointers
   parent = nullptr;
-  left_child = nullptr;
-  right_child = nullptr;
-}
-
-// getter methods
-std::shared_ptr<Node> Node::leftChild() {
-  return left_child;
-}
-
-std::shared_ptr<Node> Node::rightChild() {
-  return right_child;
+  leftChild = nullptr;
+  rightChild = nullptr;
 }
 
 std::shared_ptr<Node> Node::sibling() {
-  if (parent == nullptr)
-    return nullptr;
+  if (parent == nullptr) // no parent
+    throw NoParentException();
 
-  if (this == parent->leftChild().get())
-    return parent->rightChild();
-  return parent->leftChild();
+  if (this == parent->leftChild.get())
+    return parent->rightChild;
+  return parent->leftChild;
 }
-
-std::shared_ptr<Node> Node::getParent() {
-  return parent;
-}
-
-// util methods
-bool Node::hasLeftChild() {
-  return left_child != nullptr;
-}
-
-bool Node::hasRightChild() {
-  return right_child != nullptr;
-}
-
-void Node::setParent(std::shared_ptr<Node> parent) { this->parent = parent; }
 
 bool Node::isLeftChild() {
   if (parent == nullptr) // is root node
-    return false;
+    throw NoParentException();
 
-  auto lc = this->parent->leftChild(); 
+  auto lc = this->parent->leftChild; 
   return lc.get() == this; 
 }
 
 bool Node::isRightChild() { 
   if (parent == nullptr)
-    return false;
+    throw NoParentException();
 
-  auto rc = this->parent->rightChild();
+  auto rc = this->parent->rightChild;
   return rc.get() == this; 
 }
 
 std::shared_ptr<Node> Node::getGrandParent() {
   if (parent == nullptr)
-    return nullptr;
-  return parent->getParent();
+    throw NoParentException();
+  return parent->parent;
 }
 
 std::shared_ptr<Node> Node::getUncle() {
-  if (parent == nullptr || parent->getParent() == nullptr)
-    return nullptr;
+  if (parent == nullptr || parent->parent == nullptr)
+    throw NoParentException();
   return parent->sibling();
 }
 
@@ -83,7 +62,7 @@ int Node::height() {
 
   int h = 0;
   do {
-    node = node->getParent();
+    node = node->parent;
     h++;
   } while (node);
 
@@ -96,18 +75,16 @@ int Node::blackHeight() {
   
   int bh = 0;
 
-  node = node->getParent().get();
+  node = node->parent.get();
   while (node) {
-    if (node->getcolor() == BLACK)
+    if (node->color == BLACK)
       bh++;
-    node = node->getParent().get();
+    node = node->parent.get();
   }
 
   return bh;
 }
 
-void Node::setLeftChild(std::shared_ptr<Node> lc) { this->left_child = lc; }
-void Node::setRightChild(std::shared_ptr<Node> rc) { this->right_child = rc; }
 
 
 
