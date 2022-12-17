@@ -8,15 +8,15 @@
 int BSTree::deleteNode(std::string key) {
   auto loc = findParentLoc(key);
   auto delete_node = getChild(loc.first, loc.second);
-  auto parent = delete_node->getParent();
+  auto parent = delete_node->parent;
   if (delete_node == nullptr)
     return -1;
   else if (delete_node == root)
     root = nullptr;
   else if (delete_node->isLeftChild())
-    parent->setLeftChild(nullptr);
+    parent->leftChild = nullptr;
   else
-    parent->setRightChild(nullptr);
+    parent->rightChild = nullptr;
   return 1;
 }
 
@@ -33,9 +33,9 @@ std::pair<std::shared_ptr<Node>, Side> BSTree::findParentLoc(const std::string &
   node = root;
 
   while (true) {
-    pkey = node->getkey();
-    left = node->leftChild();
-    right = node->rightChild();
+    pkey = node->key;
+    left = node->leftChild;
+    right = node->rightChild;
 
     if (left && key < pkey)
       node = left;
@@ -45,9 +45,9 @@ std::pair<std::shared_ptr<Node>, Side> BSTree::findParentLoc(const std::string &
       // found the node to hang new node off of
       if (key == pkey) {
         if (node->isLeftChild())
-          res = std::pair<std::shared_ptr<Node>, Side>(node->getParent(), LEFT);
+          res = std::pair<std::shared_ptr<Node>, Side>(node->parent, LEFT);
         else
-          res = std::pair<std::shared_ptr<Node>, Side>(node->getParent(), RIGHT);
+          res = std::pair<std::shared_ptr<Node>, Side>(node->parent, RIGHT);
       }
       else if (key < pkey)
         res = std::pair<std::shared_ptr<Node>, Side>(node, LEFT);
@@ -70,13 +70,13 @@ std::shared_ptr<Node> BSTree::queryNode(std::string key) {
     return nullptr;
 
   node = root;
-  left = node->leftChild();
-  right = node->rightChild();
+  left = node->leftChild;
+  right = node->rightChild;
  
   while (left != nullptr || right != nullptr) { 
-    pkey = node->getkey();
-    left = node->leftChild();
-    right = node->rightChild();
+    pkey = node->key;
+    left = node->leftChild;
+    right = node->rightChild;
 
     if (key < pkey) 
       node = left;
@@ -90,13 +90,13 @@ std::shared_ptr<Node> BSTree::queryNode(std::string key) {
 }
 
 std::shared_ptr<Node> BSTree::addChild(std::shared_ptr<Node> pnode, Side s, std::shared_ptr<Node> child) {
-  auto pkey = pnode->getkey();
+  auto pkey = pnode->key;
     
-  child->setParent(pnode);
+  child->parent = pnode;
   if (s == LEFT) {
-    pnode->setLeftChild(child);
+    pnode->leftChild = child;
   } else {
-    pnode->setRightChild(child);
+    pnode->rightChild = child;
   }
 
   return child;
@@ -107,8 +107,8 @@ std::shared_ptr<Node> BSTree::getChild(std::shared_ptr<Node> node, Side s) {
     return nullptr;
   
   if (s == LEFT)
-    return node->leftChild();
-  return node->rightChild();    
+    return node->leftChild;
+  return node->rightChild;    
 }
 
 void BSTree::inOrderTraverse() {
@@ -125,15 +125,15 @@ void BSTree::inOrderTraverse() {
   while (curr != nullptr || backtrack.size() > 0) {
     if (curr != nullptr) {
       backtrack.push(curr);
-      curr = curr->leftChild();
+      curr = curr->leftChild;
     }
 
     if (curr == nullptr && backtrack.size() > 0) {
       node = backtrack.top();
       backtrack.pop();
 
-      std::cout << "key: " << node->getkey() << ",value: " << node->getvalue() << std::endl;
-      curr = node->rightChild();
+      std::cout << "key: " << node->key << ",value: " << node->val << std::endl;
+      curr = node->rightChild;
     }
   }
 }
@@ -151,11 +151,11 @@ std::vector<std::shared_ptr<Node> > BSTree::getChildren() {
     q.pop();
 
     children.push_back(ele);
-    if (ele->hasLeftChild())
-      q.push(ele->leftChild());
+    if (ele->leftChild != nullptr)
+      q.push(ele->leftChild);
 
-    if (ele->hasRightChild())
-      q.push(ele->rightChild());
+    if (ele->rightChild != nullptr)
+      q.push(ele->rightChild);
   }
 
   return children;
@@ -198,9 +198,9 @@ std::shared_ptr<Node> RBTree::insertNode(const std::string &key, int val) {
 }
 
 void RBTree::updateColors(std::shared_ptr<Node> node) {
-  auto parent = node->getParent();
+  auto parent = node->parent;
 
-  while (node != root && parent->getcolor() == RED) {
+  while (node != root && parent->color == RED) {
     // case 1 and 4 are recolorable situations
     if (!tryRecolor(node)) { 
       // use rotation to maintain invariant
@@ -210,7 +210,7 @@ void RBTree::updateColors(std::shared_ptr<Node> node) {
           updateColors(parent);
         }
         // case 3
-        rotateRight(parent->getParent());
+        rotateRight(parent->parent);
         updateColors(parent);
       } else {
         if (node->isLeftChild()) {
@@ -218,12 +218,12 @@ void RBTree::updateColors(std::shared_ptr<Node> node) {
           updateColors(parent);
         }
         // case 6
-        rotateLeft(parent->getParent());
+        rotateLeft(parent->parent);
         updateColors(parent);
       }
     }
     // root always have to color BLACK
-    root->setColor(BLACK);
+    root->color = BLACK;
   }
 }
 
@@ -238,16 +238,16 @@ bool RBTree::tryRecolor(std::shared_ptr<Node> node) {
   */
   // recolor
 
-  auto parent = node->getParent();
+  auto parent = node->parent;
   auto uncle = node->getUncle();
   if (parent && !uncle) {
-    parent->setColor(RED);
-    node->setColor(BLACK);
+    parent->color = RED;
+    node->color = BLACK;
     return true;
-  } else if (parent && uncle && uncle->getcolor() == RED) {
-    parent->setColor(RED);
-    uncle->setColor(BLACK);
-    node->setColor(BLACK);
+  } else if (parent && uncle && uncle->color == RED) {
+    parent->color = RED;
+    uncle->color = BLACK;
+    node->color = BLACK;
     return true;
   }
 
@@ -255,26 +255,26 @@ bool RBTree::tryRecolor(std::shared_ptr<Node> node) {
 }
 
 void RBTree::rotateLeft(std::shared_ptr<Node> node) {
-  auto rightChild = node->rightChild();
-  auto subTree = rightChild->leftChild();
+  auto rightChild = node->rightChild;
+  auto subTree = rightChild->leftChild;
 
-  node->setRightChild(subTree);
-  node->setParent(rightChild);
-  rightChild->setLeftChild(node);
-  rightChild->setParent(nullptr);
+  node->rightChild = subTree;
+  node->parent = rightChild;
+  rightChild->leftChild = node;
+  rightChild->parent = nullptr;
 
   if (node == root)
     root = rightChild;
 }
 
 void RBTree::rotateRight(std::shared_ptr<Node> node) {
-  auto leftChild = node->leftChild();
-  auto subTree = leftChild->rightChild();
+  auto leftChild = node->leftChild;
+  auto subTree = leftChild->rightChild;
 
-  node->setLeftChild(subTree);
-  node->setParent(leftChild);
-  leftChild->setRightChild(node);
-  leftChild->setParent(nullptr);
+  node->leftChild = subTree;
+  node->parent = leftChild;
+  leftChild->rightChild = node;
+  leftChild->parent = nullptr;
   
   if (node == root)
     root = leftChild;
@@ -284,12 +284,12 @@ bool RBTree::checkColorInvariant() {
   auto children = getChildren();
 
   for (auto child : children) {
-     if (child->getcolor() == RED) {
-       auto parent = child->getParent();
+     if (child->color == RED) {
+       auto parent = child->parent;
        if (parent) {
-         if (parent->getcolor() != BLACK)
+         if (parent->color != BLACK)
            return false;
-         assert(parent->getcolor() == BLACK);
+         assert(parent->color == BLACK);
        }
      }
   }
