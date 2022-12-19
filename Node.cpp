@@ -15,42 +15,39 @@ Node::Node(std::string key, int val, Color color) : key(key), val(val), color(co
 void Node::initNode() {
   // initialize pointers
   parent = nullptr;
-  leftChild = nullptr;
-  rightChild = nullptr;
+  left = nullptr;
+  right = nullptr;
 }
 
-std::shared_ptr<Node> Node::sibling() {
+Node* Node::sibling() {
   if (parent == nullptr) // no parent
     throw NoParentException();
 
-  if (this == parent->leftChild.get())
-    return parent->rightChild;
-  return parent->leftChild;
+  if (this == parent->left)
+    return parent->right;
+  return parent->left;
 }
 
 bool Node::isLeftChild() {
   if (parent == nullptr) // is root node
     throw NoParentException();
 
-  auto lc = this->parent->leftChild; 
-  return lc.get() == this; 
+  return this->parent->left == this; 
 }
 
 bool Node::isRightChild() { 
   if (parent == nullptr)
     throw NoParentException();
-
-  auto rc = this->parent->rightChild;
-  return rc.get() == this; 
+  return this->parent->right == this; 
 }
 
-std::shared_ptr<Node> Node::getGrandParent() {
+Node* Node::getGrandParent() {
   if (parent == nullptr)
     throw NoParentException();
   return parent->parent;
 }
 
-std::shared_ptr<Node> Node::getUncle() {
+Node* Node::getUncle() {
   if (parent == nullptr || parent->parent == nullptr)
     throw NoParentException();
   return parent->sibling();
@@ -58,7 +55,7 @@ std::shared_ptr<Node> Node::getUncle() {
 
 int Node::height() {
   // height of node to root, not including node itself
-  std::shared_ptr<Node> node(this); 
+  Node* node = this; 
 
   int h = 0;
   do {
@@ -75,11 +72,11 @@ int Node::blackHeight() {
   
   int bh = 0;
 
-  node = node->parent.get();
+  node = this->parent;
   while (node) {
     if (node->color == BLACK)
       bh++;
-    node = node->parent.get();
+    node = this->parent;
   }
 
   return bh;
