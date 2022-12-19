@@ -5,8 +5,20 @@
 #include <queue>
 #include "BSTree.h"
 
+Node* BSTree::insert(const std::string& key, int val) {
+  auto newNode = insertNode(root, key, val);
+
+  return newNode;
+}
+
+Node* BSTree::remove(const std::string& key) {
+  auto removedNode = removeNode(root, key);
+
+  return removedNode; 
+}
+
 // normal BST
-Node* BSTree::insert(Node* recurseRoot, const std::string key, int val) {
+Node* BSTree::insertNode(Node* recurseRoot, const std::string& key, int val) {
   // auto newNode
   // need to check if 
 
@@ -22,10 +34,10 @@ Node* BSTree::insert(Node* recurseRoot, const std::string key, int val) {
   
 
   if (key < recurseRoot->key) {
-    recurseRoot->left = insert(recurseRoot->left, key, val);
+    recurseRoot->left = insertNode(recurseRoot->left, key, val);
     recurseRoot->left->parent = recurseRoot;
   } else if (key > recurseRoot->key) {
-    recurseRoot->right = insert(recurseRoot->right, key, val);
+    recurseRoot->right = insertNode(recurseRoot->right, key, val);
     recurseRoot->right->parent = recurseRoot;
   } else {
     recurseRoot->val = val;
@@ -44,17 +56,17 @@ Node* BSTree::findMinNode(Node* root) {
   return ptr;
 }
 
-Node* BSTree::remove(Node* recurseRoot, std::string key) {
+Node* BSTree::removeNode(Node* recurseRoot, const std::string& key) {
   if (root == nullptr) {
     return root;
   }
 
   if (key > recurseRoot->key) {
-    recurseRoot->right = remove(recurseRoot->right, key);
+    recurseRoot->right = removeNode(recurseRoot->right, key);
     
     return recurseRoot;
   } else if (key < recurseRoot->key) {
-    recurseRoot->left = remove(recurseRoot->left, key);
+    recurseRoot->left = removeNode(recurseRoot->left, key);
     return recurseRoot;
   }
 
@@ -72,7 +84,7 @@ Node* BSTree::remove(Node* recurseRoot, std::string key) {
   } 
   // both left and right exists
   auto nextNode = findMinNode(recurseRoot->right);
-  recurseRoot->right = remove(recurseRoot->right, nextNode->key);
+  recurseRoot->right = removeNode(recurseRoot->right, nextNode->key);
   return nextNode;
 }
 
@@ -106,7 +118,11 @@ Node* BSTree::findNode(const std::string &qkey) {
   }
   return nullptr;
 }
-  
+
+void BSTree::printNode(Node* node) {
+  std::cout << "key: " << node->key << ",value: " << node->val;
+}
+
 void BSTree::inOrderTraverse() {
   if (root == nullptr) {
     std::cout << "Nothing in the BST" << std::endl;
@@ -126,7 +142,9 @@ void BSTree::inOrderTraverse() {
   while (backtrack.size() > 0) {
     curr = backtrack.top();
     backtrack.pop();
-    std::cout << "key: " << curr->key << ",value: " << curr->val << std::endl;
+
+    printNode(curr);
+    cout << endl;
 
     if (curr->right != nullptr) {
       curr = curr->right;
