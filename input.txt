@@ -1,6 +1,8 @@
-hello 12
-world 1
-deny 3
-how 1
-are 5
-you 9
+1 hello 12
+1 world 1
+1 deny 3
+1 how 1
+1 are 5
+1 you 9
+2 how
+2 are

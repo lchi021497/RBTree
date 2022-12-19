@@ -23,8 +23,10 @@ Node* BSTree::insert(Node* recurseRoot, const std::string key, int val) {
 
   if (key < recurseRoot->key) {
     recurseRoot->left = insert(recurseRoot->left, key, val);
+    recurseRoot->left->parent = recurseRoot;
   } else if (key > recurseRoot->key) {
     recurseRoot->right = insert(recurseRoot->right, key, val);
+    recurseRoot->right->parent = recurseRoot;
   } else {
     recurseRoot->val = val;
   }
@@ -42,40 +44,36 @@ Node* BSTree::findMinNode(Node* root) {
   return ptr;
 }
 
-Node* BSTree::remove(Node* node, std::string key) {
+Node* BSTree::remove(Node* recurseRoot, std::string key) {
   if (root == nullptr) {
     return root;
   }
 
-  auto rootNode = root;
-
-  if (key > root->key) {
-    rootNode->right = remove(rootNode->right, key);
-    return root;
-  } else if (key < root->key) {
-    rootNode->left = remove(rootNode->left, key);
-    return root;
+  if (key > recurseRoot->key) {
+    recurseRoot->right = remove(recurseRoot->right, key);
+    
+    return recurseRoot;
+  } else if (key < recurseRoot->key) {
+    recurseRoot->left = remove(recurseRoot->left, key);
+    return recurseRoot;
   }
 
   // if we get here, root is the node to be removed
-  if (root->left == nullptr) {
-    auto temp = root->right;
+  if (recurseRoot->left == nullptr) {
+    auto temp = recurseRoot->right;
     treeSize -= 1;
-    delete rootNode;
+    delete recurseRoot;
     return temp;
-  } else if (root->right == nullptr) {
-    auto temp = root->left;
+  } else if (recurseRoot->right == nullptr) {
+    auto temp = recurseRoot->left;
     treeSize -= 1;
-    delete rootNode;
+    delete recurseRoot;
     return temp;
-  } else { // both left and right exists
-    auto nextNode = findMinNode(rootNode->right);
-
-    this->root = nextNode;
-    root->right = remove(root->right, nextNode->key);
-  }
-
-  return root;
+  } 
+  // both left and right exists
+  auto nextNode = findMinNode(recurseRoot->right);
+  recurseRoot->right = remove(recurseRoot->right, nextNode->key);
+  return nextNode;
 }
 
 Node* BSTree::findNode(const std::string &qkey) {
