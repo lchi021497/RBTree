@@ -44,4 +44,6 @@ struct NoParentException : public exception {
    }
 };
 
+ostream& operator<<(ostream& os, const Node& node); 
+
 #endif

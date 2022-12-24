@@ -55,33 +55,21 @@ Node* Node::getUncle() {
 
 int Node::height() {
   // height of node to root, not including node itself
-  Node* node = this; 
+  if (this->parent == nullptr) {
+    return 1;
+  }
 
-  int h = 0;
-  do {
-    node = node->parent;
-    h++;
-  } while (node);
-
-  return h;
+  return 1 + this->parent->height();
 }
 
 int Node::blackHeight() {
-  // height of node to root that are BLACK, not including node itself
-  auto node = this;
-  
-  int bh = 0;
-
-  node = this->parent;
-  while (node) {
-    if (node->color == BLACK)
-      bh++;
-    node = this->parent;
-  }
-
-  return bh;
+  // height of node to root that are BLACK, not including node itself  
+  if (this->color == BLACK)
+    return 1 + this->parent->blackHeight();
+  return this->parent->blackHeight();
 }
 
-
-
-
+ostream& operator<<(ostream& os, const Node& node) {
+  os << "Node(key: " << node.key << ", value: " << node.val << ", color: " << node.color << ")" << endl;
+  return os;
+}

@@ -23,7 +23,6 @@ class BSTree {
     Node* root;
     int treeSize;
 
-    virtual void printNode(Node* node);
     pair<Node*, Node*> insertNode(Node* recurseRoot, const std::string& key, int val);
     Node* removeNode(Node* recurseRoot, const std::string& key);
 };

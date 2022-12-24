@@ -122,9 +122,9 @@ Node* BSTree::findNode(const std::string &qkey) {
   return nullptr;
 }
 
-void BSTree::printNode(Node* node) {
-  std::cout << "key: " << node->key << ",value: " << node->val;
-}
+// void BSTree::printNode(Node* node) {
+//   std::cout << "key: " << node->key << ",value: " << node->val;
+// }
 
 vector<Node *> BSTree::inOrderTraverse() {
   vector<Node *> flattened;
@@ -170,16 +170,14 @@ Node* RBTree::insert(const std::string& key, int val) {
   auto newNode = BSTree::insert(key, val);
   if (newNode == NULL)
     return newNode;
-  assert(newNode != NULL);
-  cout << "inserting node ";
-  printNode(newNode);
-  cout << endl;
+  // assert(newNode != NULL);
+  // cout << "inserting node " << *newNode << endl;
 
   if (newNode)
     updateColors(newNode);
 
-  checkColorInvariant();
-  checkPointers();
+  // checkColorInvariant();
+  // checkPointers();
   // checkDescendantBlackHeights();
 
   return newNode;
@@ -225,9 +223,7 @@ Node* RBTree::remove(const std::string& key) {
  }
 
 void RBTree::updateColors(Node* node) {
-  cout << "updating colors... for node ";
-  printNode(node);
-  cout << endl;
+  // cout << "updating colors... for node " << *node <<  endl;
 
   if (node == root) {
     // root always have to color BLACK
@@ -245,27 +241,22 @@ void RBTree::updateColors(Node* node) {
         if (node->isRightChild()) { // case 2
           auto rotatedParent = rotateLeft(parent);
           recurseRoot = rotatedParent->parent;
-          checkPointers();
         }
 
         // case 3
         recurseRoot = rotateRight(recurseRoot);
-        checkPointers();
         recurseRoot->color = BLACK;
         recurseRoot->right->color = RED;
         
         updateColors(recurseRoot);
       } else {
         if (node->isLeftChild()) {
-          checkPointers();
           auto rotatedParent = rotateRight(parent); // case 5
           recurseRoot = rotatedParent->parent; 
-          checkPointers();
         }
 
         // case 6
         recurseRoot = rotateLeft(recurseRoot);
-        checkPointers();
         recurseRoot->color = BLACK;
         recurseRoot->left->color = RED;
         
@@ -283,9 +274,7 @@ bool RBTree::tryRecolor(Node* node) {
     to maintain the invariance of not having consecutive RED nodes.
   */
   // recolor
-  cout << "try color at node ";
-  printNode(node);
-  cout << endl;
+  // cout << "try color at node " << *node << endl;
   auto parent = node->parent;
   auto uncle = node->getUncle();
   auto grandparent = node->getGrandParent();
@@ -307,16 +296,19 @@ bool RBTree::tryRecolor(Node* node) {
 }
 
 Node *RBTree::rotateLeft(Node* node) {
-  cout << "ROTATE LEFT AT node ";
-  printNode(node);
-  cout << endl;
+  // cout << "ROTATE LEFT AT node " << *node << endl;
   auto rightChild = node->right;
   auto subTree = rightChild->left;
 
   rightChild->left = node;
   rightChild->parent = node->parent;
-  if (node->parent)
-    node->parent->left = rightChild;
+  if (node->parent) {
+    if (node->isLeftChild()) {
+      node->parent->left = rightChild;
+    } else {
+      node->parent->right = rightChild;
+    }
+  }
   node->right = subTree;
   if (subTree)
     subTree->parent = node;
@@ -329,16 +321,19 @@ Node *RBTree::rotateLeft(Node* node) {
 }
 
 Node *RBTree::rotateRight(Node* node) {
-  cout << "ROTATE RIGHT AT node ";
-  printNode(node);
-  cout << endl;
+  // cout << "ROTATE RIGHT AT node " << *node << endl;
   auto leftChild = node->left;
   auto subTree = leftChild->right;
 
   leftChild->right = node;
   leftChild->parent = node->parent;
-  if (node->parent)
-    node->parent->right = leftChild;
+  if (node->parent) {
+    if (node->isLeftChild()) {
+      node->parent->left = leftChild;
+    } else {
+      node->parent->right = leftChild;
+    }
+  }
   node->left = subTree;
   if (subTree)
     subTree->parent = node;
