@@ -14,7 +14,8 @@ class BSTree {
     Node* findMinNode(Node* root);
     Node* findNode(const std::string &key);
     
-    void inOrderTraverse();
+    vector<Node *> inOrderTraverse();
+    vector<Node *> getLeaves();
     
     int size() { return treeSize; };
 
@@ -23,27 +24,27 @@ class BSTree {
     int treeSize;
 
     virtual void printNode(Node* node);
-    Node* insertNode(Node* recurseRoot, const std::string& key, int val);
+    pair<Node*, Node*> insertNode(Node* recurseRoot, const std::string& key, int val);
     Node* removeNode(Node* recurseRoot, const std::string& key);
 };
 
-// class RBTree : public BSTree {
-//   public:
-//     RBTree() { root = nullptr; };
-//     RBTree(Node &node);
+class RBTree : public BSTree {
+  public:
+    RBTree() { root = nullptr; };
+    RBTree(Node &node);
 
-//     std::shared_ptr<Node> insertNode(const std::string key, int val) override;
-//     int remove(std::string key) override;
+    Node *insert(const std::string& key, int val) override;
+    Node *remove(const std::string& key) override;
 
-//   private:
-//     void updateColors(std::shared_ptr<Node> node);
-//     bool tryRecolor(std::shared_ptr<Node> node);
-//     void rotateLeft(std::shared_ptr<Node> node);
-//     void rotateRight(std::shared_ptr<Node> node);
-//     bool checkColorInvariant(); // check invariant that parent of RED node should be BLACK
-//     bool checkDescendantBlackHeights(); // check invariant that all leaves have same BLACK height
-// };
-
+  private:
+    void updateColors(Node* node);
+    bool tryRecolor(Node* node);
+    Node *rotateLeft(Node* node);
+    Node *rotateRight(Node* node);
+    void checkPointers();
+    bool checkColorInvariant(); // check invariant that parent of RED node should be BLACK
+    bool checkDescendantBlackHeights(); // check invariant that all leaves have same BLACK height
+};
 
 // class NodeNotFoundException : std::exception {
 //   public:

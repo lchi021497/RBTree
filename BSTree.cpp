@@ -3,12 +3,13 @@
 #include <iostream>
 #include <stack>
 #include <queue>
+#include <utility>
 #include "BSTree.h"
 
 Node* BSTree::insert(const std::string& key, int val) {
-  auto newNode = insertNode(root, key, val);
+  auto res = insertNode(root, key, val);
 
-  return newNode;
+  return res.second;
 }
 
 Node* BSTree::remove(const std::string& key) {
@@ -18,32 +19,34 @@ Node* BSTree::remove(const std::string& key) {
 }
 
 // normal BST
-Node* BSTree::insertNode(Node* recurseRoot, const std::string& key, int val) {
+pair<Node*, Node*> BSTree::insertNode(Node* recurseRoot, const std::string& key, int val) {
   // auto newNode
   // need to check if 
 
   if (recurseRoot == nullptr) {
-    auto newNode = new Node(key, val);
+    auto newNode = new Node(key, val, RED);
     treeSize += 1;
     if (root == nullptr) {
       root = newNode;
     }
 
-    return newNode;
+    return make_pair(newNode, newNode);
   }
   
-
+  pair<Node*, Node*> res; 
   if (key < recurseRoot->key) {
-    recurseRoot->left = insertNode(recurseRoot->left, key, val);
+    res = insertNode(recurseRoot->left, key, val);
+    recurseRoot->left = res.first;
     recurseRoot->left->parent = recurseRoot;
   } else if (key > recurseRoot->key) {
-    recurseRoot->right = insertNode(recurseRoot->right, key, val);
+    res = insertNode(recurseRoot->right, key, val);
+    recurseRoot->right = res.first; 
     recurseRoot->right->parent = recurseRoot;
   } else {
     recurseRoot->val = val;
   }
 
-  return recurseRoot;
+  return make_pair(recurseRoot, res.second);
 }
 
 Node* BSTree::findMinNode(Node* root) {
@@ -123,10 +126,11 @@ void BSTree::printNode(Node* node) {
   std::cout << "key: " << node->key << ",value: " << node->val;
 }
 
-void BSTree::inOrderTraverse() {
+vector<Node *> BSTree::inOrderTraverse() {
+  vector<Node *> flattened;
   if (root == nullptr) {
-    std::cout << "Nothing in the BST" << std::endl;
-    return;
+    cout << "Nothing in the BST" << endl;
+    return flattened;
   }
 
   std::stack<Node*> backtrack;
@@ -143,8 +147,9 @@ void BSTree::inOrderTraverse() {
     curr = backtrack.top();
     backtrack.pop();
 
-    printNode(curr);
-    cout << endl;
+    // printNode(curr);
+    // cout << endl;
+    flattened.push_back(curr);
 
     if (curr->right != nullptr) {
       curr = curr->right;
@@ -155,179 +160,236 @@ void BSTree::inOrderTraverse() {
       } 
     }
   }
+
+  return flattened;
 }
 
-// std::vector<std::shared_ptr<Node> > BSTree::getChildren() {
-//   std::vector<std::shared_ptr<Node> > children;
-//   std::queue<std::shared_ptr<Node> > q;
 
-//   if (root == nullptr)
-//     return children;
+// Red Black Tree implementation
+Node* RBTree::insert(const std::string& key, int val) {
+  auto newNode = BSTree::insert(key, val);
+  if (newNode == NULL)
+    return newNode;
+  assert(newNode != NULL);
+  cout << "inserting node ";
+  printNode(newNode);
+  cout << endl;
 
-//   q.push(root);
-//   while (q.size()) {
-//     auto ele = q.front();
-//     q.pop();
+  if (newNode)
+    updateColors(newNode);
 
-//     children.push_back(ele);
-//     if (ele->leftChild != nullptr)
-//       q.push(ele->leftChild);
+  checkColorInvariant();
+  checkPointers();
+  // checkDescendantBlackHeights();
 
-//     if (ele->rightChild != nullptr)
-//       q.push(ele->rightChild);
-//   }
+  return newNode;
+}
 
-//   return children;
-// }
+Node* RBTree::remove(const std::string& key) {
+  return 0;
+}
 
-// std::vector<std::shared_ptr<Node> > BSTree::getLeaves() {
-//   auto children = getChildren();
-//   std::vector<std::shared_ptr<Node> > leaves;
+//  std::vector<std::shared_ptr<Node> > BSTree::getChildren() {
+//    std::vector<std::shared_ptr<Node> > children;
+//    std::queue<std::shared_ptr<Node> > q;
 
-//   for (auto child : children) {
-//     if (child->isLeafNode())
-//       leaves.push_back(child);
-//   }
+//    if (root == nullptr)
+//      return children;
 
-//   return leaves;
-// }
+//    q.push(root);
+//    while (q.size()) {
+//      auto ele = q.front();
+//      q.pop();
 
-// int BSTree::size() {
-//   return getChildren().size();
-// }
+//      children.push_back(ele);
+//      if (ele->leftChild != nullptr)
+//        q.push(ele->leftChild);
 
-// // Red Black Tree implementation
-// std::shared_ptr<Node> RBTree::insertNode(const std::string key, int val) {
-//   auto newNode = std::make_shared<Node>(key, val, RED);
+//      if (ele->rightChild != nullptr)
+//        q.push(ele->rightChild);
+//    }
 
-//   if (root == nullptr) {
-//     root = newNode;
-//     return root;
-//   }
+//    return children;
+//  }
 
-//   auto insertLoc = findParentLoc(key);
-//   auto child = addChild(insertLoc.first, insertLoc.second, newNode);
+ std::vector<Node *> BSTree::getLeaves() {
+   auto children = inOrderTraverse();
+   std::vector<Node *> leaves;
 
-//   updateColors(child);
+   for (auto child : children) {
+     if (child->isLeafNode())
+       leaves.push_back(child);
+   }
 
-//   // std::cout << "node with key " << key << " inserted with parent " << insertLoc.first->getkey() << std::endl;
-//   checkColorInvariant();
-//   checkDescendantBlackHeights();
+   return leaves;
+ }
 
-//   return child;
-// }
+void RBTree::updateColors(Node* node) {
+  cout << "updating colors... for node ";
+  printNode(node);
+  cout << endl;
 
-// void RBTree::updateColors(std::shared_ptr<Node> node) {
-//   auto parent = node->parent;
+  if (node == root) {
+    // root always have to color BLACK
+    root->color = BLACK;
+    return;
+  }
+  auto parent = node->parent;
+  auto recurseRoot = node->getGrandParent();
+  if (node != root && node->color == RED && parent->color == RED) {
+    // case 1 and 4 are recolorable situations
+    if (!tryRecolor(node)) { 
+      // use rotation to maintain invariant
+      
+      if (parent->isLeftChild()) {
+        if (node->isRightChild()) { // case 2
+          auto rotatedParent = rotateLeft(parent);
+          recurseRoot = rotatedParent->parent;
+          checkPointers();
+        }
 
-//   while (node != root && parent->color == RED) {
-//     // case 1 and 4 are recolorable situations
-//     if (!tryRecolor(node)) { 
-//       // use rotation to maintain invariant
-//       if (parent->isLeftChild()) {
-//         if (node->isRightChild()) { // case 2
-//           rotateLeft(parent);
-//           updateColors(parent);
-//         }
-//         // case 3
-//         rotateRight(parent->parent);
-//         updateColors(parent);
-//       } else {
-//         if (node->isLeftChild()) {
-//           rotateRight(parent); // case 5
-//           updateColors(parent);
-//         }
-//         // case 6
-//         rotateLeft(parent->parent);
-//         updateColors(parent);
-//       }
-//     }
-//     // root always have to color BLACK
-//     root->color = BLACK;
-//   }
-// }
+        // case 3
+        recurseRoot = rotateRight(recurseRoot);
+        checkPointers();
+        recurseRoot->color = BLACK;
+        recurseRoot->right->color = RED;
+        
+        updateColors(recurseRoot);
+      } else {
+        if (node->isLeftChild()) {
+          checkPointers();
+          auto rotatedParent = rotateRight(parent); // case 5
+          recurseRoot = rotatedParent->parent; 
+          checkPointers();
+        }
 
-// int RBTree::delete(std::string key) {
-//   return 0;
-// }
+        // case 6
+        recurseRoot = rotateLeft(recurseRoot);
+        checkPointers();
+        recurseRoot->color = BLACK;
+        recurseRoot->left->color = RED;
+        
+        updateColors(recurseRoot);
+      }
+    } else {
+      updateColors(recurseRoot);
+    }
+  }
+}
 
-// bool RBTree::tryRecolor(std::shared_ptr<Node> node) {
-//   /*
-//     attempt to recolor parent and sibling's color in order to maintain the
-//     invariance of not having consecutive RED nodes.
-//   */
-//   // recolor
+bool RBTree::tryRecolor(Node* node) {
+  /*
+    attempt to recolor parent and sibling (uncle)'s color in order
+    to maintain the invariance of not having consecutive RED nodes.
+  */
+  // recolor
+  cout << "try color at node ";
+  printNode(node);
+  cout << endl;
+  auto parent = node->parent;
+  auto uncle = node->getUncle();
+  auto grandparent = node->getGrandParent();
+  if (parent->color == BLACK)
+    return true;
 
-//   auto parent = node->parent;
-//   auto uncle = node->getUncle();
-//   if (parent && !uncle) {
-//     parent->color = RED;
-//     node->color = BLACK;
-//     return true;
-//   } else if (parent && uncle && uncle->color == RED) {
-//     parent->color = RED;
-//     uncle->color = BLACK;
-//     node->color = BLACK;
-//     return true;
-//   }
+  if (parent && !uncle && parent->color == RED) {
+    parent->color = BLACK;
+    return true;
+  } else if (parent && uncle && parent->color == RED && uncle->color == RED) {
+    parent->color = BLACK;
+    uncle->color = BLACK;
+    grandparent->color = RED;
+    
+    return true;
+  }
 
-//   return false;
-// }
+  return false;
+}
 
-// void RBTree::rotateLeft(std::shared_ptr<Node> node) {
-//   auto rightChild = node->rightChild;
-//   auto subTree = rightChild->leftChild;
+Node *RBTree::rotateLeft(Node* node) {
+  cout << "ROTATE LEFT AT node ";
+  printNode(node);
+  cout << endl;
+  auto rightChild = node->right;
+  auto subTree = rightChild->left;
 
-//   node->rightChild = subTree;
-//   node->parent = rightChild;
-//   rightChild->leftChild = node;
-//   rightChild->parent = nullptr;
+  rightChild->left = node;
+  rightChild->parent = node->parent;
+  if (node->parent)
+    node->parent->left = rightChild;
+  node->right = subTree;
+  if (subTree)
+    subTree->parent = node;
+  node->parent = rightChild;
 
-//   if (node == root)
-//     root = rightChild;
-// }
-
-// void RBTree::rotateRight(std::shared_ptr<Node> node) {
-//   auto leftChild = node->leftChild;
-//   auto subTree = leftChild->rightChild;
-
-//   node->leftChild = subTree;
-//   node->parent = leftChild;
-//   leftChild->rightChild = node;
-//   leftChild->parent = nullptr;
+  if (node == root)
+    root = rightChild;
   
-//   if (node == root)
-//     root = leftChild;
-// }
+  return rightChild;
+}
 
-// bool RBTree::checkColorInvariant() {
-//   auto children = getChildren();
+Node *RBTree::rotateRight(Node* node) {
+  cout << "ROTATE RIGHT AT node ";
+  printNode(node);
+  cout << endl;
+  auto leftChild = node->left;
+  auto subTree = leftChild->right;
 
-//   for (auto child : children) {
-//      if (child->color == RED) {
-//        auto parent = child->parent;
-//        if (parent) {
-//          if (parent->color != BLACK)
-//            return false;
-//          assert(parent->color == BLACK);
-//        }
-//      }
-//   }
-//   return true;
-// }
+  leftChild->right = node;
+  leftChild->parent = node->parent;
+  if (node->parent)
+    node->parent->right = leftChild;
+  node->left = subTree;
+  if (subTree)
+    subTree->parent = node;
+  node->parent = leftChild;
+  
+  if (node == root)
+    root = leftChild;
+  
+  return leftChild;
+}
 
-// bool RBTree::checkDescendantBlackHeights() {
-//   auto leaves = getLeaves();
+void RBTree::checkPointers() {
+  auto nodes = inOrderTraverse();
 
-//   int bh = -1;
-//   for (auto leaf : leaves) {
-//     if (bh < 0) {
-//       bh = leaf->blackHeight();
-//     }
+  for (auto node : nodes) {
+    if (node->left) {
+      // check pointers
+      assert(node->left->parent == node);
+    }
+    if (node->right) {
+      assert(node->right->parent == node);
+    }
+  }
+}
 
-//     if (bh != leaf->blackHeight())
-//       return false;
-//     assert(bh == leaf->blackHeight());
-//   }
-//   return true;
-// }
+bool RBTree::checkColorInvariant() {
+  auto children = inOrderTraverse();
+
+  for (auto child : children) {
+     if (child->color == RED) {
+       auto parent = child->parent;
+       if (parent) {
+         assert(parent->color == BLACK);
+       }
+     }
+  }
+  return true;
+}
+
+bool RBTree::checkDescendantBlackHeights() {
+  auto leaves = getLeaves();
+
+  int bh = -1;
+  for (auto leaf : leaves) {
+    if (bh < 0) {
+      bh = leaf->blackHeight();
+    }
+
+    if (bh != leaf->blackHeight())
+      return false;
+    assert(bh == leaf->blackHeight());
+  }
+  return true;
+}
